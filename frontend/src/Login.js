@@ -18,13 +18,13 @@ const Login = ({ setToken }) => {
             setToken(token);
             localStorage.setItem("token", token);
         } catch (err) {
-            setError("Credenciales incorrectas");
+            setError("Invalid credentials");
         }
     };
 
     return (
         <div style={{ textAlign: "center", padding: "20px" }}>
-            <h2>Iniciar Sesión</h2>
+            <h2>Login</h2>
             {error && <p style={{ color: "red" }}>{error}</p>}
             <form onSubmit={handleLogin}>
                 <input
