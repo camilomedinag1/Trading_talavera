@@ -1,5 +1,8 @@
 # Stock Trading App
 
+user: admin
+password: 123456
+
 A simple stock trading simulation app using Flask, React, and WebSockets.
 
 ## Installation

@@ -29,19 +29,19 @@ const Login = ({ setToken }) => {
             <form onSubmit={handleLogin}>
                 <input
                     type="text"
-                    placeholder="Usuario"
+                    placeholder="User"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                 />
                 <br />
                 <input
                     type="password"
-                    placeholder="Contraseña"
+                    placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
                 <br />
-                <button type="submit">Ingresar</button>
+                <button type="submit">Login</button>
             </form>
         </div>
     );
