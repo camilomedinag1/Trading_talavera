@@ -3,14 +3,21 @@ import io from "socket.io-client";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import Login from "./Login";
 
 const socket = io("http://localhost:5000");
+
+const ProtectedRoute = ({ children, token }) => {
+    return token ? children : <Navigate to="/login" />;
+};
 
 function App() {
     const [stockPrice, setStockPrice] = useState(150);
     const [priceHistory, setPriceHistory] = useState([]);
-    const [balance, setBalance] = useState(10000); // Saldo inicial
-    const [stocks, setStocks] = useState(0); // Cantidad de acciones
+    const [balance, setBalance] = useState(10000);
+    const [stocks, setStocks] = useState(0);
+    const [token, setToken] = useState(localStorage.getItem("token"));
 
     useEffect(() => {
         socket.on("stock_price", (data) => {
@@ -22,7 +29,10 @@ function App() {
     }, []);
 
     const buyStock = async () => {
-        const token = localStorage.getItem("token"); // JWT guardado
+        if (!token) {
+            alert("Debes iniciar sesión para comprar acciones.");
+            return;
+        }
         try {
             const res = await axios.post(
                 "http://localhost:5000/api/stock/buy",
@@ -32,12 +42,15 @@ function App() {
             setBalance(res.data.balance);
             setStocks(res.data.stocks.AAPL || 0);
         } catch (err) {
-            alert(err.response.data.message);
+            alert(err.response?.data?.message || "Error en la transacción.");
         }
     };
 
     const sellStock = async () => {
-        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("Debes iniciar sesión para vender acciones.");
+            return;
+        }
         try {
             const res = await axios.post(
                 "http://localhost:5000/api/stock/sell",
@@ -47,10 +60,41 @@ function App() {
             setBalance(res.data.balance);
             setStocks(res.data.stocks.AAPL || 0);
         } catch (err) {
-            alert(err.response.data.message);
+            alert(err.response?.data?.message || "Error en la transacción.");
         }
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        setToken(null);
+    };
+
+    return (
+        <Router>
+            <Routes>
+                <Route path="/login" element={<Login setToken={setToken} />} />
+                <Route
+                    path="/"
+                    element={
+                        <ProtectedRoute token={token}>
+                            <Dashboard
+                                stockPrice={stockPrice}
+                                priceHistory={priceHistory}
+                                balance={balance}
+                                stocks={stocks}
+                                buyStock={buyStock}
+                                sellStock={sellStock}
+                                handleLogout={handleLogout}
+                            />
+                        </ProtectedRoute>
+                    }
+                />
+            </Routes>
+        </Router>
+    );
+}
+
+const Dashboard = ({ stockPrice, priceHistory, balance, stocks, buyStock, sellStock, handleLogout }) => {
     const data = {
         labels: Array.from({ length: priceHistory.length }, (_, i) => i + 1),
         datasets: [
@@ -78,9 +122,12 @@ function App() {
             <button onClick={sellStock} style={{ margin: "10px", padding: "10px", fontSize: "16px" }}>
                 Sell 1 Share
             </button>
+            <br />
+            <button onClick={handleLogout} style={{ marginTop: "20px", padding: "10px", fontSize: "16px", background: "red", color: "white" }}>
+                Logout
+            </button>
         </div>
     );
-}
+};
 
 export default App;
-
